@@ -236,4 +236,4 @@ Follow these steps to clone and run the project locally:
 
 #### 🧑🏻‍💻 Autor / Author
 
-Criado por **`Álisson Romão Santos`** &copy; 2026.
+Criado por **`Álisson`** &copy; 2026.
