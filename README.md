@@ -236,4 +236,4 @@ Follow these steps to clone and run the project locally:
 
 #### 🧑🏻‍💻 Autor / Author
 
-Criado por **`Álisson`** &copy; 2026.
+Feito por/Made by **`Álisson`** &copy; 2026.
