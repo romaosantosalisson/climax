@@ -1,6 +1,6 @@
-export type ThemeMode = 'light' | 'dark' | 'system';
-export type TemperatureUnit = 'C' | 'F';
-export type Language = 'pt-BR' | 'en-US' | 'es';
+export type ThemeMode = "light" | "dark" | "system";
+export type TemperatureUnit = "C" | "F";
+export type Language = "pt-BR" | "en-US" | "es";
 
 export interface GeoResult {
   name: string;
@@ -44,4 +44,3 @@ export interface WeatherData {
   forecast: ForecastDay[];
   airQuality: number | null;
 }
-

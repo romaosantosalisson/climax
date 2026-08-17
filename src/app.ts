@@ -1,5 +1,5 @@
-import { initializeApp } from './main';
+import { initializeApp } from "./main";
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   initializeApp();
 });

@@ -5,6 +5,27 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Climax</title>
+    <script>
+      // Set initial data-theme as early as possible to match system preference or stored choice
+      (function () {
+        try {
+          var stored = localStorage.getItem("climax-theme");
+          var theme =
+            stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+          var resolved =
+            theme === "system" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : theme === "system"
+                ? "light"
+                : theme;
+          document.documentElement.setAttribute("data-theme", resolved);
+        } catch (e) {
+          // ignore
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

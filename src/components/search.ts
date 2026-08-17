@@ -1,5 +1,5 @@
-import { translations } from '../i18n';
-import type { Language } from '../types';
+import { translations } from "../i18n";
+import type { Language } from "../types";
 
 export function searchMarkup(language: Language): string {
   const t = translations[language];

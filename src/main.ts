@@ -1,44 +1,120 @@
-import './styles.css';
-import { fetchWeatherForLocation, reverseGeocode, searchCityByName } from './api/openMeteo';
-import { translations, getPreferredLanguage } from './i18n';
-import { getSavedTheme, getSavedUnit } from './storage';
-import { escapeHtml } from './utils';
-import { headerMarkup } from './components/header';
-import { searchMarkup } from './components/search';
-import { footerMarkup } from './components/footer';
-import type { Language, TemperatureUnit, ThemeMode, WeatherData } from './types';
+import "./styles.css";
+import { fetchWeatherForLocation, reverseGeocode, searchCityByName } from "./api/openMeteo";
+import { translations, getPreferredLanguage } from "./i18n";
+import { getSavedTheme, getSavedUnit } from "./storage";
+import { escapeHtml } from "./utils";
+import { headerMarkup } from "./components/header";
+import { searchMarkup } from "./components/search";
+import { footerMarkup } from "./components/footer";
+import type { Language, TemperatureUnit, ThemeMode, WeatherData } from "./types";
 
-const app = document.querySelector<HTMLDivElement>('#app') as HTMLDivElement;
+const app = document.querySelector<HTMLDivElement>("#app") as HTMLDivElement;
 
 const weatherCodeMap: Record<number, Record<Language, string>> = {
-  0: { 'pt-BR': 'Céu limpo', 'en-US': 'Clear sky', es: 'Cielo despejado' },
-  1: { 'pt-BR': 'Principalmente limpo', 'en-US': 'Mainly clear', es: 'Mayormente despejado' },
-  2: { 'pt-BR': 'Parcialmente nublado', 'en-US': 'Partly cloudy', es: 'Parcialmente nublado' },
-  3: { 'pt-BR': 'Nublado', 'en-US': 'Overcast', es: 'Cubierto' },
-  45: { 'pt-BR': 'Neblina', 'en-US': 'Fog', es: 'Niebla' },
-  48: { 'pt-BR': 'Neblina com gelo', 'en-US': 'Rime fog', es: 'Niebla helada' },
-  51: { 'pt-BR': 'Garoa leve', 'en-US': 'Light drizzle', es: 'Llovizna ligera' },
-  53: { 'pt-BR': 'Garoa moderada', 'en-US': 'Moderate drizzle', es: 'Llovizna moderada' },
-  55: { 'pt-BR': 'Garoa densa', 'en-US': 'Dense drizzle', es: 'Llovizna intensa' },
-  56: { 'pt-BR': 'Garoa gelada leve', 'en-US': 'Light freezing drizzle', es: 'Llovizna helada ligera' },
-  57: { 'pt-BR': 'Garoa gelada intensa', 'en-US': 'Dense freezing drizzle', es: 'Llovizna helada intensa' },
-  61: { 'pt-BR': 'Chuva leve', 'en-US': 'Light rain', es: 'Lluvia ligera' },
-  63: { 'pt-BR': 'Chuva moderada', 'en-US': 'Moderate rain', es: 'Lluvia moderada' },
-  65: { 'pt-BR': 'Chuva forte', 'en-US': 'Heavy rain', es: 'Lluvia fuerte' },
-  66: { 'pt-BR': 'Chuva gelada leve', 'en-US': 'Light freezing rain', es: 'Lluvia helada ligera' },
-  67: { 'pt-BR': 'Chuva gelada forte', 'en-US': 'Heavy freezing rain', es: 'Lluvia helada fuerte' },
-  71: { 'pt-BR': 'Neve leve', 'en-US': 'Light snow', es: 'Nieve ligera' },
-  73: { 'pt-BR': 'Neve moderada', 'en-US': 'Moderate snow', es: 'Nieve moderada' },
-  75: { 'pt-BR': 'Neve forte', 'en-US': 'Heavy snow', es: 'Nieve fuerte' },
-  77: { 'pt-BR': 'Grãos de neve', 'en-US': 'Snow grains', es: 'Granizo de nieve' },
-  80: { 'pt-BR': 'Pancadas leves', 'en-US': 'Light showers', es: 'Lloviznas ligeras' },
-  81: { 'pt-BR': 'Pancadas moderadas', 'en-US': 'Moderate showers', es: 'Lloviznas moderadas' },
-  82: { 'pt-BR': 'Pancadas violentas', 'en-US': 'Violent showers', es: 'Lloviznas violentas' },
-  85: { 'pt-BR': 'Neve leve', 'en-US': 'Light snow showers', es: 'Nieve ligera' },
-  86: { 'pt-BR': 'Neve forte', 'en-US': 'Heavy snow showers', es: 'Nieve fuerte' },
-  95: { 'pt-BR': 'Trovoada', 'en-US': 'Thunderstorm', es: 'Tormenta' },
-  96: { 'pt-BR': 'Trovoada com granizo leve', 'en-US': 'Thunderstorm with hail', es: 'Tormenta con granizo' },
-  99: { 'pt-BR': 'Trovoada com granizo forte', 'en-US': 'Heavy hailstorm', es: 'Tormenta fuerte con granizo' },
+  0: { "pt-BR": "Céu limpo", "en-US": "Clear sky", es: "Cielo despejado" },
+  1: {
+    "pt-BR": "Principalmente limpo",
+    "en-US": "Mainly clear",
+    es: "Mayormente despejado",
+  },
+  2: {
+    "pt-BR": "Parcialmente nublado",
+    "en-US": "Partly cloudy",
+    es: "Parcialmente nublado",
+  },
+  3: { "pt-BR": "Nublado", "en-US": "Overcast", es: "Cubierto" },
+  45: { "pt-BR": "Neblina", "en-US": "Fog", es: "Niebla" },
+  48: { "pt-BR": "Neblina com gelo", "en-US": "Rime fog", es: "Niebla helada" },
+  51: {
+    "pt-BR": "Garoa leve",
+    "en-US": "Light drizzle",
+    es: "Llovizna ligera",
+  },
+  53: {
+    "pt-BR": "Garoa moderada",
+    "en-US": "Moderate drizzle",
+    es: "Llovizna moderada",
+  },
+  55: {
+    "pt-BR": "Garoa densa",
+    "en-US": "Dense drizzle",
+    es: "Llovizna intensa",
+  },
+  56: {
+    "pt-BR": "Garoa gelada leve",
+    "en-US": "Light freezing drizzle",
+    es: "Llovizna helada ligera",
+  },
+  57: {
+    "pt-BR": "Garoa gelada intensa",
+    "en-US": "Dense freezing drizzle",
+    es: "Llovizna helada intensa",
+  },
+  61: { "pt-BR": "Chuva leve", "en-US": "Light rain", es: "Lluvia ligera" },
+  63: {
+    "pt-BR": "Chuva moderada",
+    "en-US": "Moderate rain",
+    es: "Lluvia moderada",
+  },
+  65: { "pt-BR": "Chuva forte", "en-US": "Heavy rain", es: "Lluvia fuerte" },
+  66: {
+    "pt-BR": "Chuva gelada leve",
+    "en-US": "Light freezing rain",
+    es: "Lluvia helada ligera",
+  },
+  67: {
+    "pt-BR": "Chuva gelada forte",
+    "en-US": "Heavy freezing rain",
+    es: "Lluvia helada fuerte",
+  },
+  71: { "pt-BR": "Neve leve", "en-US": "Light snow", es: "Nieve ligera" },
+  73: {
+    "pt-BR": "Neve moderada",
+    "en-US": "Moderate snow",
+    es: "Nieve moderada",
+  },
+  75: { "pt-BR": "Neve forte", "en-US": "Heavy snow", es: "Nieve fuerte" },
+  77: {
+    "pt-BR": "Grãos de neve",
+    "en-US": "Snow grains",
+    es: "Granizo de nieve",
+  },
+  80: {
+    "pt-BR": "Pancadas leves",
+    "en-US": "Light showers",
+    es: "Lloviznas ligeras",
+  },
+  81: {
+    "pt-BR": "Pancadas moderadas",
+    "en-US": "Moderate showers",
+    es: "Lloviznas moderadas",
+  },
+  82: {
+    "pt-BR": "Pancadas violentas",
+    "en-US": "Violent showers",
+    es: "Lloviznas violentas",
+  },
+  85: {
+    "pt-BR": "Neve leve",
+    "en-US": "Light snow showers",
+    es: "Nieve ligera",
+  },
+  86: {
+    "pt-BR": "Neve forte",
+    "en-US": "Heavy snow showers",
+    es: "Nieve fuerte",
+  },
+  95: { "pt-BR": "Trovoada", "en-US": "Thunderstorm", es: "Tormenta" },
+  96: {
+    "pt-BR": "Trovoada com granizo leve",
+    "en-US": "Thunderstorm with hail",
+    es: "Tormenta con granizo",
+  },
+  99: {
+    "pt-BR": "Trovoada com granizo forte",
+    "en-US": "Heavy hailstorm",
+    es: "Tormenta fuerte con granizo",
+  },
 };
 
 const state: {
@@ -53,10 +129,9 @@ const state: {
   unit: getSavedUnit(),
 };
 
-
-function getResolvedTheme(): Exclude<ThemeMode, 'system'> {
-  if (state.theme === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+function getResolvedTheme(): Exclude<ThemeMode, "system"> {
+  if (state.theme === "system") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
 
   return state.theme;
@@ -67,49 +142,54 @@ function applyTheme(): void {
   document.documentElement.dataset.theme = selected;
 
   // update theme toggle button icon
-  const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
+  const themeToggle = document.querySelector<HTMLButtonElement>("#theme-toggle");
   if (themeToggle) {
     const t = translations[state.language];
     // Display rules requested:
     // - when state.theme === 'dark' show sun icon (☀️)
     // - when state.theme === 'light' show moon icon (🌙)
     // - when state.theme === 'system' show computer icon (🖥️) — and represent the light theme via the toggle
-    let icon = '🖥️';
-    if (state.theme === 'dark') icon = '☀️';
-    else if (state.theme === 'light') icon = '🌙';
+    let icon = "🖥️";
+    if (state.theme === "dark") icon = "☀️";
+    else if (state.theme === "light") icon = "🌙";
 
     themeToggle.textContent = icon;
     // mark pressed when the resolved theme is dark
-    themeToggle.setAttribute('aria-pressed', String(selected === 'dark'));
+    themeToggle.setAttribute("aria-pressed", String(selected === "dark"));
 
     // update accessible label/title
     // For system, include the resolved theme in the label (e.g. "System (Dark)")
-    const resolvedLabel = selected === 'dark' ? t.dark : t.light;
-    const readable = state.theme === 'system' ? `${t.system} (${resolvedLabel})` : (state.theme === 'dark' ? `${t.dark}` : `${t.light}`);
-    themeToggle.setAttribute('aria-label', `Theme: ${readable}`);
+    const resolvedLabel = selected === "dark" ? t.dark : t.light;
+    const readable =
+      state.theme === "system"
+        ? `${t.system} (${resolvedLabel})`
+        : state.theme === "dark"
+          ? `${t.dark}`
+          : `${t.light}`;
+    themeToggle.setAttribute("aria-label", `Theme: ${readable}`);
     themeToggle.title = readable;
   }
 }
 
 function setLanguage(language: Language): void {
   state.language = language;
-  localStorage.setItem('climax-language', language);
+  localStorage.setItem("climax-language", language);
   document.documentElement.lang = language;
 
-  const languageSelect = document.querySelector<HTMLSelectElement>('#language-select');
+  const languageSelect = document.querySelector<HTMLSelectElement>("#language-select");
   if (languageSelect) {
     languageSelect.value = language;
   }
 
-  const searchInput = document.querySelector<HTMLInputElement>('#city-search');
-  const searchLabel = document.querySelector<HTMLLabelElement>('#city-search-label');
-  const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
+  const searchInput = document.querySelector<HTMLInputElement>("#city-search");
+  const searchLabel = document.querySelector<HTMLLabelElement>("#city-search-label");
+  const themeToggle = document.querySelector<HTMLButtonElement>("#theme-toggle");
   const t = translations[language];
-  const searchButton = document.querySelector<HTMLButtonElement>('#search-button');
-
+  const searchButton = document.querySelector<HTMLButtonElement>("#search-button");
+  const footer = document.querySelector<HTMLElement>(".app-footer");
   if (searchInput) {
     searchInput.placeholder = t.placeholder;
-    searchInput.setAttribute('aria-label', t.placeholder);
+    searchInput.setAttribute("aria-label", t.placeholder);
   }
 
   if (searchLabel) {
@@ -118,9 +198,11 @@ function setLanguage(language: Language): void {
 
   if (searchButton) {
     searchButton.innerHTML = `🔎 <span>${escapeHtml(t.search)}</span>`;
-    searchButton.setAttribute('aria-label', t.search);
+    searchButton.setAttribute("aria-label", t.search);
   }
-
+  if (footer) {
+    footer.innerHTML = footerMarkup(language);
+  }
   // update theme toggle label when language changes
   if (themeToggle) {
     applyTheme();
@@ -131,44 +213,44 @@ function setLanguage(language: Language): void {
 
 function setUnit(unit: TemperatureUnit): void {
   state.unit = unit;
-  localStorage.setItem('climax-temperature-unit', unit);
+  localStorage.setItem("climax-temperature-unit", unit);
 
-  const unitButton = document.querySelector<HTMLButtonElement>('#unit-toggle');
+  const unitButton = document.querySelector<HTMLButtonElement>("#unit-toggle");
   if (unitButton) {
-    unitButton.textContent = unit === 'C' ? '°C' : '°F';
-    unitButton.setAttribute('aria-pressed', unit === 'F' ? 'true' : 'false');
+    unitButton.textContent = unit === "C" ? "°C" : "°F";
+    unitButton.setAttribute("aria-pressed", unit === "F" ? "true" : "false");
   }
 
   renderWeatherPanel();
 }
 
 function formatTemperature(value: number): string {
-  const converted = state.unit === 'F' ? (value * 9) / 5 + 32 : value;
+  const converted = state.unit === "F" ? (value * 9) / 5 + 32 : value;
   return `${Math.round(converted)}°${state.unit}`;
 }
 
 function formatTemperatureValue(value: number): number {
-  return state.unit === 'F' ? (value * 9) / 5 + 32 : value;
+  return state.unit === "F" ? (value * 9) / 5 + 32 : value;
 }
 
 function formatTime(dateValue: string, locale = state.language): string {
   return new Intl.DateTimeFormat(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(dateValue));
 }
 
 function formatDay(dateValue: string, locale = state.language): string {
   return new Intl.DateTimeFormat(locale, {
-    weekday: 'short',
+    weekday: "short",
   }).format(new Date(dateValue));
 }
 
 function formatFullDate(dateValue: string, locale = state.language): string {
   return new Intl.DateTimeFormat(locale, {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   }).format(new Date(dateValue));
 }
 
@@ -178,30 +260,30 @@ function getWeatherLabel(code: number): string {
 
 function getWeatherIcon(code: number, isDay: boolean): string {
   if (code === 0) {
-    return isDay ? '☀️' : '🌙';
+    return isDay ? "☀️" : "🌙";
   }
 
   if ([1, 2, 3].includes(code)) {
-    return '⛅';
+    return "⛅";
   }
 
   if ([45, 48].includes(code)) {
-    return '🌫️';
+    return "🌫️";
   }
 
   if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) {
-    return '🌧️';
+    return "🌧️";
   }
 
   if ([71, 73, 75, 77, 85, 86].includes(code)) {
-    return '❄️';
+    return "❄️";
   }
 
   if ([95, 96, 99].includes(code)) {
-    return '⛈️';
+    return "⛈️";
   }
 
-  return '☁️';
+  return "☁️";
 }
 
 function getAirQualityLabel(value: number | null): string {
@@ -225,17 +307,17 @@ function getAirQualityLabel(value: number | null): string {
 }
 
 function getCompassDirection(degrees: number): string {
-  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const index = Math.round(((degrees % 360) / 45)) % 8;
+  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const index = Math.round((degrees % 360) / 45) % 8;
   return directions[index];
 }
 
-function getStatusMessage(key: keyof typeof translations['pt-BR']): string {
+function getStatusMessage(key: keyof (typeof translations)["pt-BR"]): string {
   return translations[state.language][key];
 }
 
-function showStatus(message: string, type: 'info' | 'error' | 'success' = 'info'): void {
-  const statusEl = document.querySelector<HTMLElement>('#status-message');
+function showStatus(message: string, type: "info" | "error" | "success" = "info"): void {
+  const statusEl = document.querySelector<HTMLElement>("#status-message");
   if (!statusEl) {
     return;
   }
@@ -245,21 +327,35 @@ function showStatus(message: string, type: 'info' | 'error' | 'success' = 'info'
 }
 
 function setSearchButtonLoading(isLoading: boolean): void {
-  const button = document.querySelector<HTMLButtonElement>('#search-button');
+  const button = document.querySelector<HTMLButtonElement>("#search-button");
   if (!button) {
     return;
   }
 
   const label = translations[state.language];
-  button.classList.toggle('is-loading', isLoading);
+  button.classList.toggle("is-loading", isLoading);
   button.innerHTML = isLoading
     ? `<span class="button-spinner" aria-hidden="true"></span><span>${escapeHtml(label.searching)}</span>`
     : `<span aria-hidden="true">🔎</span><span>${escapeHtml(label.search)}</span>`;
-  button.setAttribute('aria-label', isLoading ? label.searching : label.search);
+  button.setAttribute("aria-label", isLoading ? label.searching : label.search);
+}
+
+function setGeoButtonLoading(isLoading: boolean): void {
+  const button = document.querySelector<HTMLButtonElement>("#geo-button");
+  if (!button) {
+    return;
+  }
+
+  button.classList.toggle("is-loading", isLoading);
+  button.innerHTML = isLoading ? `<span class="button-spinner" aria-hidden="true"></span>` : "📍";
+  button.setAttribute(
+    "aria-label",
+    isLoading ? translations[state.language].searching : translations[state.language].geolocation,
+  );
 }
 
 function renderEmptyState(): void {
-  const root = document.querySelector<HTMLElement>('#weather-panel');
+  const root = document.querySelector<HTMLElement>("#weather-panel");
   if (!root) {
     return;
   }
@@ -274,7 +370,7 @@ function renderEmptyState(): void {
 }
 
 function renderWeatherPanel(): void {
-  const root = document.querySelector<HTMLElement>('#weather-panel');
+  const root = document.querySelector<HTMLElement>("#weather-panel");
   if (!root) {
     return;
   }
@@ -306,7 +402,7 @@ function renderWeatherPanel(): void {
         </article>
       `;
     })
-    .join('');
+    .join("");
 
   const highlightMarkup = `
     <article class="highlight-card">
@@ -342,7 +438,7 @@ function renderWeatherPanel(): void {
     <article class="highlight-card">
       <p class="highlight-label">${t.visibility}</p>
       <div class="highlight-value-primary">${escapeHtml(current.visibilityKm !== null ? `${(current.visibilityKm / 1000).toFixed(1)} km` : t.noData)}</div>
-      <div class="highlight-meta">${escapeHtml(current.visibilityKm !== null ? translations[state.language].average : '')}</div>
+      <div class="highlight-meta">${escapeHtml(current.visibilityKm !== null ? translations[state.language].average : "")}</div>
     </article>
 
     <article class="highlight-card">
@@ -412,16 +508,16 @@ function renderWeatherPanel(): void {
 }
 
 async function performSearch(cityName: string): Promise<void> {
-  const sanitized = cityName.replace(/[<>]/g, '').trim();
+  const sanitized = cityName.replace(/[<>]/g, "").trim();
 
   if (!sanitized) {
     setSearchButtonLoading(false);
-    showStatus(getStatusMessage('cityRequired'), 'error');
+    showStatus(getStatusMessage("cityRequired"), "error");
     return;
   }
 
   setSearchButtonLoading(true);
-  showStatus(`⏳ ${getStatusMessage('searching')}`, 'info');
+  showStatus(`⏳ ${getStatusMessage("searching")}`, "info");
 
   try {
     const location = await searchCityByName(sanitized);
@@ -429,7 +525,7 @@ async function performSearch(cityName: string): Promise<void> {
     if (!location) {
       state.weather = null;
       renderWeatherPanel();
-      showStatus(getStatusMessage('notFound').replace('{query}', sanitized), 'error');
+      showStatus(getStatusMessage("notFound").replace("{query}", sanitized), "error");
       setSearchButtonLoading(false);
       return;
     }
@@ -439,43 +535,61 @@ async function performSearch(cityName: string): Promise<void> {
     if (!weather) {
       state.weather = null;
       renderWeatherPanel();
-      showStatus(getStatusMessage('requestError'), 'error');
+      showStatus(getStatusMessage("requestError"), "error");
       setSearchButtonLoading(false);
       return;
     }
 
     state.weather = weather;
-    showStatus(`${location.name} • ${location.country}`, 'success');
+    showStatus(`${location.name} • ${location.country}`, "success");
     renderWeatherPanel();
   } catch {
     state.weather = null;
     renderWeatherPanel();
-    showStatus(getStatusMessage('requestError'), 'error');
+    showStatus(getStatusMessage("requestError"), "error");
   } finally {
     setSearchButtonLoading(false);
   }
 }
 
 async function handleGeoSearch(): Promise<void> {
+  const isLocalhost =
+    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
   if (!navigator.geolocation) {
-    showStatus(getStatusMessage('geoUnavailable'), 'error');
+    showStatus(getStatusMessage("geoUnavailable"), "error");
+    return;
+  }
+
+  if (!window.isSecureContext && !isLocalhost) {
+    showStatus(
+      "Este site precisa usar HTTPS ou localhost para acessar a sua localização.",
+      "error",
+    );
     return;
   }
 
   setSearchButtonLoading(true);
-  showStatus(`⏳ ${getStatusMessage('searching')}`, 'info');
+  setGeoButtonLoading(true);
+  showStatus(`⏳ ${getStatusMessage("searching")}`, "info");
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       try {
-        const location = await reverseGeocode(position.coords.latitude, position.coords.longitude);
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        let location = await reverseGeocode(latitude, longitude);
 
         if (!location) {
-          state.weather = null;
-          renderWeatherPanel();
-          showStatus(getStatusMessage('noLocation'), 'error');
-          setSearchButtonLoading(false);
-          return;
+          location = {
+            name: "Current location",
+            country: "Local",
+            countryCode: "GPS",
+            latitude,
+            longitude,
+            timezone: "auto",
+          };
         }
 
         const weather = await fetchWeatherForLocation(location);
@@ -483,25 +597,40 @@ async function handleGeoSearch(): Promise<void> {
         if (!weather) {
           state.weather = null;
           renderWeatherPanel();
-          showStatus(getStatusMessage('requestError'), 'error');
+          showStatus(getStatusMessage("requestError"), "error");
           setSearchButtonLoading(false);
+          setGeoButtonLoading(false);
           return;
         }
 
         state.weather = weather;
-        showStatus(`${location.name} • ${location.country}`, 'success');
+        showStatus(`${location.name} • ${location.country}`, "success");
         renderWeatherPanel();
       } catch {
         state.weather = null;
         renderWeatherPanel();
-        showStatus(getStatusMessage('requestError'), 'error');
+        showStatus(getStatusMessage("requestError"), "error");
       } finally {
         setSearchButtonLoading(false);
+        setGeoButtonLoading(false);
       }
     },
-    () => {
-      showStatus(getStatusMessage('geoDenied'), 'error');
+    (error) => {
+      const message =
+        error.code === 1
+          ? getStatusMessage("geoDenied")
+          : error.code === 2
+            ? getStatusMessage("geoUnavailable")
+            : getStatusMessage("noLocation");
+
+      showStatus(message, "error");
       setSearchButtonLoading(false);
+      setGeoButtonLoading(false);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0,
     },
   );
 }
@@ -517,43 +646,45 @@ function initializeApp(): void {
   `;
 
   // place footer in the document body (outside the card .app-shell)
-  if (!document.querySelector('.app-footer')) {
-    const footer = document.createElement('footer');
-    footer.className = 'app-footer';
-    footer.innerHTML = footerMarkup();
+  if (!document.querySelector(".app-footer")) {
+    const footer = document.createElement("footer");
+    footer.className = "app-footer";
+    footer.innerHTML = footerMarkup(state.language);
     document.body.appendChild(footer);
   }
 
-  const searchForm = document.querySelector<HTMLFormElement>('#search-form');
-  const searchInput = document.querySelector<HTMLInputElement>('#city-search');
-  const geoButton = document.querySelector<HTMLButtonElement>('#geo-button');
-  const unitButton = document.querySelector<HTMLButtonElement>('#unit-toggle');
-  const languageSelect = document.querySelector<HTMLSelectElement>('#language-select');
-  const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
+  const searchForm = document.querySelector<HTMLFormElement>("#search-form");
+  const searchInput = document.querySelector<HTMLInputElement>("#city-search");
+  const geoButton = document.querySelector<HTMLButtonElement>("#geo-button");
+  const unitButton = document.querySelector<HTMLButtonElement>("#unit-toggle");
+  const languageSelect = document.querySelector<HTMLSelectElement>("#language-select");
+  const themeToggle = document.querySelector<HTMLButtonElement>("#theme-toggle");
 
   if (searchForm && searchInput) {
-    searchForm.addEventListener('submit', async (event) => {
+    searchForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      await performSearch(searchInput.value);
+      const cityName = searchInput.value;
+      searchInput.value = "";
+      await performSearch(cityName);
     });
   }
 
   if (geoButton) {
-    geoButton.addEventListener('click', () => {
+    geoButton.addEventListener("click", () => {
       void handleGeoSearch();
     });
   }
 
   if (unitButton) {
-    unitButton.addEventListener('click', () => {
-      setUnit(state.unit === 'C' ? 'F' : 'C');
+    unitButton.addEventListener("click", () => {
+      setUnit(state.unit === "C" ? "F" : "C");
     });
-    unitButton.textContent = state.unit === 'C' ? '°C' : '°F';
+    unitButton.textContent = state.unit === "C" ? "°C" : "°F";
   }
 
   if (languageSelect) {
     languageSelect.value = state.language;
-    languageSelect.addEventListener('change', () => {
+    languageSelect.addEventListener("change", () => {
       const value = languageSelect.value as Language;
       setLanguage(value);
     });
@@ -562,35 +693,42 @@ function initializeApp(): void {
   if (themeToggle) {
     // initialize label
     applyTheme();
-    themeToggle.addEventListener('click', () => {
+    themeToggle.addEventListener("click", () => {
       // Improved toggle logic:
       // - If current theme is 'system', determine the resolved theme (based on prefers-color-scheme)
       //   and toggle to the opposite of the resolved theme (so clicking flips the effective theme).
       // - Otherwise, toggle between 'light' and 'dark' as usual.
       let newTheme: ThemeMode;
-      if (state.theme === 'system') {
+      if (state.theme === "system") {
         const resolved = getResolvedTheme();
-        newTheme = resolved === 'dark' ? 'light' : 'dark';
+        newTheme = resolved === "dark" ? "light" : "dark";
       } else {
-        newTheme = state.theme === 'dark' ? 'light' : 'dark';
+        newTheme = state.theme === "dark" ? "light" : "dark";
       }
 
       state.theme = newTheme;
-      localStorage.setItem('climax-theme', newTheme);
+      localStorage.setItem("climax-theme", newTheme);
       applyTheme();
     });
   }
 
   if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (state.theme === 'system') {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => {
+      if (state.theme === "system") {
         applyTheme();
       }
-    });
+    };
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", handler);
+    } else if (typeof mq.addListener === "function") {
+      // older browsers
+      mq.addListener(handler);
+    }
   }
 
-  const preferredLanguage = localStorage.getItem('climax-language') as Language | null;
-  if (preferredLanguage && ['pt-BR', 'en-US', 'es'].includes(preferredLanguage)) {
+  const preferredLanguage = localStorage.getItem("climax-language") as Language | null;
+  if (preferredLanguage && ["pt-BR", "en-US", "es"].includes(preferredLanguage)) {
     state.language = preferredLanguage;
   }
 
@@ -601,4 +739,3 @@ function initializeApp(): void {
 }
 
 export { initializeApp };
-
